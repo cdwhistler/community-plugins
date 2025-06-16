@@ -14,8 +14,7 @@
             _converse = this._converse;
             html = converse.env.html;
 
-            _converse.api.listen.on('afterMessageBodyTransformed', function(text)
-            {				
+            _converse.api.listen.on('afterMessageBodyTransformed', function(text)  {				
 				renderDiagram(text);
             });
 
@@ -28,7 +27,7 @@
     function renderDiagram(text)
     {
 		const msgId = Math.random().toString(36).substr(2,9);
-        console.debug("doDiagram", text, msgId);
+        //console.debug("doDiagram", text, msgId);
 
         if (text.length == 0) return;
 
@@ -44,7 +43,7 @@
             text.startsWith("sequenceDiagram") ||
             text.startsWith("erDiagram")) {
 
-            text.addTemplateResult(0, text.length, html`<br/><div id="mermaid-${msgId}" class="mermaid">\n${text.replace(/<br>/g, '\n')}\n</div>`);
+            text.addTemplateResult(0, text.length, html([`<br/><div id="mermaid-${msgId}" class="mermaid">\n${text.replace(/<br>/g, '\n')}\n</div>`], msgId));
 
             setTimeout(function()
             {
@@ -58,14 +57,12 @@
         }
         else
 
-        if (text.startsWith("X:1"))
-        {
+        if (text.startsWith("X:1"))   {	
             text.addTemplateResult(0, text.length, html`<div id="abc-${msgId}"></div>`);
 
-            setTimeout(function()
-            {
-                ABCJS.renderAbc("abc-" + msgId, text.replace(/<br>/g, '\n'));
-            }, 500);
+            setTimeout(function() {
+                ABCJS.renderAbc("abc-" + msgId, text.replace(/<br>/g, '\n'), {foregroundColor: ""});	// use default color
+            }, 1000);		
         }
     }
 }));

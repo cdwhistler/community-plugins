@@ -10,10 +10,9 @@
     <script src="https://conversejs.org/3rdparty/libsignal-protocol.min.js"></script>
     <script src="./dist/converse.js"></script>
 
-    <script src="packages/download-dialog/dist/download-dialog.js"></script>
     <script src="packages/toolbar-utilities/toolbar-utilities.js"></script>
     <script src="packages/location/location.js"></script>
-    <script src="packages/jitsimeet/jitsimeet.js"></script>
+    <script src="packages/olmeet/olmeet.js"></script>
     <script src="packages/screencast/screencast.js"></script>
     <script src="packages/vmsg/vmsg.js"></script>
 
@@ -34,9 +33,6 @@
     <script src="packages/diagrams/mermaid.min.js"></script>
     <script src="packages/diagrams/diagrams.js"></script>
     <script src="packages/diagrams/abcjs.js"></script>
-
-    <script src="packages/http-auth/http-auth.js"></script>
-    <script src="packages/actions/actions.js"></script>	
 	
     <link type="text/css" rel="stylesheet" media="screen" href="packages/voicechat/voicechat.css" />	
     <script src="packages/voicechat/hark.js"></script>
@@ -48,14 +44,7 @@
     <script src="packages/adaptive-cards/adaptivecards.min.js"></script>
     <script src="packages/adaptive-cards/markdown-it.min.js"></script>
     <script src="packages/adaptive-cards/adaptive-cards.js"></script>	
-
-    <link type="text/css" rel="stylesheet" media="screen" href="packages/polls/polls.css" />	
-    <script src="packages/polls/polls.js"></script>	
 		
-    <script src="packages/galene/protocol.js"></script>	
-    <script src="packages/galene/galene-socket.js"></script>
-    <script src="packages/galene/galene.js"></script>	
-	
 	<script src="packages/mastodon/timeago.min.js"></script>		
     <script src="packages/mastodon/mastodon.js"></script>		
 </head>
@@ -106,8 +95,6 @@
         auto_away: 300,
         auto_reconnect: true,
         discover_connection_methods: true,
-		galene_url: "https://conversejs.github.io/community-plugins/packages/galene",
-		galene_host: 'pade.chat',	
 		mastodon: {
 			url: "https://toot.igniterealtime.org", 
 			token: "",
@@ -119,7 +106,6 @@
         view_mode: 'fullscreen',
         loglevel: 'debug',
         whitelisted_plugins: [
-			"download-dialog", 
 			"stickers", 
 			"toolbar-utilities", 
 			"search", 
@@ -128,12 +114,9 @@
 			"diagrams", 
 			"vmsg", 
 			"screencast", 
-			"jitsimeet", 
+			"olmeet", 
 			"location", 
-			"http-auth", 
-			"actions", 
-			"voicechat", 
-			"galene", 			
+			"voicechat", 			
 			"mastodon",
 			"adaptive-cards"
 		]

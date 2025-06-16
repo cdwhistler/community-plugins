@@ -38,7 +38,6 @@ const plugin = {
         html = converse.env.html;
         Model = converse.env.Model;
         const httpAuthDialog = BootstrapModal.extend({
-            id: "plugin-http-auth",
             events: {
                 'click .btn-acceptAuth': 'acceptAuth',
                 'click .btn-refuseAuth': 'refuseAuth',
@@ -74,25 +73,8 @@ const plugin = {
 
             buildResponse(responseType) {
                 const httpAuthData = this.model.attributes.data;
-                let stanzaType;
-                let response;
-                if (httpAuthData.stanzaType === 'message') {
-                    stanzaType = responseType === 'refuse' ? 'error' : 'normal';
-                    response = converse.env.$msg({
-                        from: httpAuthData.to, // inverse from and to
-                        to: httpAuthData.from, // inverse from and to
-                        type: stanzaType,
-                    });
-                    response.c('thread').t(httpAuthData['thread']).up();
-                } else {
-                    stanzaType = responseType === 'refuse' ? 'error' : 'result';
-                    response = converse.env.$iq({
-                        from: httpAuthData.to,  // inverse from and to
-                        to: httpAuthData.from, // inverse from and to
-                        id: httpAuthData.iqId,
-                        type: stanzaType,
-                    });
-                };
+                const response = httpAuthData['response'];
+                let iqType = 'get';
                 response.c('confirm', {
                     'xmlns': 'http://jabber.org/protocol/http-auth',
                     'id': httpAuthData['id'], 'method': httpAuthData['method'],
@@ -101,6 +83,10 @@ const plugin = {
                 if (responseType === 'refuse') {
                     response.c('error', { 'code': '401', 'type': 'auth' });
                     response.c('not-authorized', { 'xmlns': 'urn:ietf:params:xml:xmpp-stanzas' });
+                    iqType = 'error';
+                }
+                if (httpAuthData['stanzaType'] === 'iq') {
+                    response = response.attrs({ type: iqType });
                 }
                 _converse.api.send(response);
             },
@@ -121,7 +107,6 @@ const plugin = {
                         xmlns: confirm.getAttribute('xmlns'),
                         method: confirm.getAttribute('method'),
                         id: confirm.getAttribute('id'),
-                        iqId:stanza.getAttribute('id'),
                         url: confirm.getAttribute('url'),
                         from: stanza.getAttribute('from'),
                         to: stanza.getAttribute('to'),
@@ -129,9 +114,25 @@ const plugin = {
                         message: stanza,
                         stanzaType: stanza.localName
                     };
+                    let httpAuthMessage;
                     if (stanza.localName === 'message') {
-                        httpAuthData['thread'] = stanza.getElementsByTagName('thread')[0].textContent;
+                        httpAuthMessage = converse.env.$msg({
+                            from: _converse.jid,
+                            to: stanza.getAttribute('from'),
+                        });
+                        const thread = stanza.getElementsByTagName('thread')[0].textContent;
+                        httpAuthMessage.c('thread').t(thread).up();
+                        httpAuthData['response'] = httpAuthMessage;
+                    } else {
+                        httpAuthMessage = converse.env.$iq({
+                            from: _converse.jid,
+                            to: stanza.getAttribute('from'),
+                            id: stanza.getAttribute('id'),
+                            type: 'error',
+                        });
+                        httpAuthData.response = httpAuthMessage;
                     }
+
                     const confirmDialog = new httpAuthDialog({ 'model': new Model({ view: _converse.rosterview, data: httpAuthData }) });
                     confirmDialog.show();
                 }
