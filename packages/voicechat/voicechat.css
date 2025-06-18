@@ -1,7 +1,3 @@
-.conversejs .row > *, converse-bg .row > * {
-  flex-shrink: 1;
-}
-
 .blink_me {
   animation: blinker 1s linear infinite;
 }
