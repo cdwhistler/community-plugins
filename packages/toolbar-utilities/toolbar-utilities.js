@@ -16,34 +16,27 @@
             html = converse.env.html;
 
 			_converse.api.listen.on('getToolbarButtons', function(toolbar_el, buttons)	{
-				let color = "fill:var(--chat-toolbar-btn-color);";
+				let style = "width:18px; height:18px; fill:var(--chat-color);";
 				
-				if (toolbar_el.model.get("type") !== "chatbox") {
-					color = "fill:var(--muc-toolbar-btn-color);";
-					
-				} else {				
-					buttons.push(html`
-						<button class="btn toolbar-utilities-hide" title="${__('Return to group chat')}" @click=${hideChat}/>
-							<converse-icon style="width:18px; height:18px; ${color}" class="fa fa-minus" size="1em"></converse-icon>
-						</button>
-					`);						
+				if (toolbar_el.model.get("type") === "chatroom") {
+					style = "width:18px; height:18px; fill:var(--muc-color);";
 				}
 							
 				buttons.push(html`
 					<button class="btn toolbar-utilities-scroll" title="${__('Scroll to the bottom')}" @click=${scrollToBottom}/>
-						<converse-icon style="width:18px; height:18px; ${color}" class="fa fa-angle-double-down" size="1em"></converse-icon>
+						<converse-icon style=" ${style}" class="fa fa-angle-double-down" size="1em"></converse-icon>
 					</button>
 				`);
 
 				buttons.push(html`
 					<button class="btn toolbar-utilities-thrash" title="${__('Trash chat history')}" @click=${trashHistory}/>
-						<converse-icon style="width:18px; height:18px; ${color}" class="far fa-trash-alt" size="1em"></converse-icon>
+						<converse-icon style="${style}" class="far fa-trash-alt" size="1em"></converse-icon>
 					</button>
 				`);
 
 				buttons.push(html`
 					<button class="btn toolbar-utilities-refresh" title="${__('Refresh chat history')}" @click=${refreshHistory}/>
-						<converse-icon style="width:18px; height:18px; ${color}" class="fa fa-sync" size="1em"></converse-icon>
+						<converse-icon style="${style}" class="fa fa-sync" size="1em"></converse-icon>
 					</button>
 				`);			
 
@@ -103,18 +96,6 @@
 		console.debug("scrollToBottom", ele);
 		
 		ele.scrollTo(0, ele.scrollHeight);
-	}
-
-	function hideChat(ev) {
-		ev.stopPropagation();
-		ev.preventDefault();
-
-		const roomName = localStorage.getItem("collaboration_server.room");	
-		const domain = localStorage.getItem("collaboration_server.domain");	
-		
-		if (roomName && domain) {
-			_converse.api.rooms.open(JSON.parse(roomName) + '@conference.' + JSON.parse(domain), {'bring_to_foreground': true}, true);	
-		}
 	}
 
 }));
