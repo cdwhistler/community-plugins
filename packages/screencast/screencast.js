@@ -233,13 +233,12 @@
     }
 	
 	async function parseStanza(stanza, attrs) {
-		console.debug("parseStanza", stanza, attrs);
-
 		const invite = stanza.querySelector('invite');	
 		const retract = stanza.querySelector('retract');		
 		const occupantEle = stanza.querySelector('occupant-id');	
 		
 		if (!invite && !retract) return attrs;
+		console.debug("parseStanza", stanza, attrs);
 
 		let occupant_id;
 		
