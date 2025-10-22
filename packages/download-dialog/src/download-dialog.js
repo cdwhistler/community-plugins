@@ -166,7 +166,7 @@ const plugin = {
                 return html`
                     <td class="download-link-column" align="center">
                         <a target="_blank" rel="noopener" href="${o.link}" >
-                            <img class="chat-image" src="${o.link}" alt="Image not found: ${o.filename}${o.type}">
+                            <img class="download-chat-image" src="${o.link}" alt="Image not found: ${o.filename}${o.type}">
                         </a>
                     </td>
                     `;
