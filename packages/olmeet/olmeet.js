@@ -127,15 +127,12 @@
 				0,
 				text.length,
 				html`
-					<p>${__('A new meeting started:')} ${link_room}</p>
-					<button type="button"
-						class="btn btn-primary"
-						@click="${(ev) => clickVideo(_converse, ev)}"
-						data-room="${link_room}"
-						data-url="${url}">Open Meeting</button>
-					<button type="button"
-						class="btn btn-secondary"
-						@click="${() => window.open(url, '_blank')}">Open Meeting in New tab</button>`
+					<div style="display:flex; align-items:center; gap:8px;">
+						<p style="margin:0;">${__('A new meeting started:')} ${link_room}</p>
+						<button type="button"
+							class="btn btn-secondary olmeet-btn"
+							@click="${() => window.open(url, '_blank')}">Join Meeting in new tab</button>
+					</div>`
 			);
 		}
 	}
@@ -167,13 +164,11 @@
 		ev.stopPropagation();
 		ev.preventDefault();
 
-		const { __ } = _converse;
+		const { api } = _converse;
 		const chatView = getChatViewFromElement(ev.currentTarget);
-		const olmeet_confirm = __("Would you like to start a meeting?");
-		if (confirm(olmeet_confirm)) {
-			doVideo(_converse, chatView);
-		}
-
+		const model = new converse.env.Model();
+		model.set({ onConfirm: () => doVideo(_converse, chatView) });
+		api.modal.show('converse-olmeet-confirm', { model });
 	}
 
 	function clickVideo(_converse, ev) {
@@ -524,6 +519,41 @@
 		api.listen.on('parseMessage', (stanza, attrs) => parseStanza(_converse, stanza, attrs));	
 		api.listen.on('parseMUCMessage', (stanza, attrs) => parseStanza(_converse, stanza, attrs));		
 
+		class ConfirmDialog extends BaseModal {
+
+			initialize() {
+				super.initialize();
+				this.listenTo(this.model, "change", () => this.requestUpdate());
+			}
+
+			getModalTitle() {
+				return __('Start a meeting?');
+			}
+
+			renderModal() {
+				return html`
+					<div style="padding: 1rem; display:flex; flex-direction:column; gap:8px;">
+						<p style="margin:0;">${__('Would you like to start a meeting in this chat?')}</p>
+						<div style="display:flex; gap:8px;">
+							<button type="button" class="btn btn-primary" @click="${() => this._confirm()}">
+								${__('Start Meeting')}
+							</button>
+							<button type="button" class="btn btn-secondary" @click="${() => this.modal.hide()}">
+								${__('Cancel')}
+							</button>
+						</div>
+					</div>`
+			}
+
+			_confirm() {
+				this.modal.hide();
+				const cb = this.model.get('onConfirm');
+				if (cb) cb();
+			}
+		}
+
+		api.elements.define('converse-olmeet-confirm', ConfirmDialog);
+
 		class MeetDialog extends BaseModal {
 
 			initialize() {
@@ -546,7 +576,7 @@
 						seamless="seamless"
 						allowfullscreen="true"
 						scrolling="no"
-						style="z-index: 2147483647; width:460px; height:480px; display: inline-block"></iframe>`;
+						style="z-index: 2147483647; display: block"></iframe>`;
 			}
 		}
 
