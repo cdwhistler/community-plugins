@@ -13,7 +13,8 @@ converse-olmeet-confirm .modal-content {
 }
 
 converse-olmeet-confirm .modal-body {
-    margin-bottom: 0;
+    --converse-modal-padding: 0;
+    margin-bottom: 0 !important;
 }
 
 converse-olmeet-dialog .modal-dialog {

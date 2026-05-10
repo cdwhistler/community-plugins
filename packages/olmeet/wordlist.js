@@ -67,7 +67,7 @@
      */
     function generate() {
         const suffix = String(Math.floor(Math.random() * 90) + 10); // 10-99
-        return `${pick(adjectives)}-${pick(nouns)}-${pick(nouns)}-${suffix}`;
+        return `${pick(adjectives)}-${pick(nouns)}-${pick(nouns)}-${pick(nouns)}-${suffix}`;
     }
 
     root.OlmeetWordlist = { generate };
