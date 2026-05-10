@@ -52,7 +52,7 @@
 					);
 					const view = _converse.chatboxviews.get(box_jid);
 					if (view) {
-						doLocalVideo(view, room, `${url}/${room}`, label);
+						doLocalVideo(_converse, view, room, `${url}/${room}`, label);
 					}
 				};
 			}
@@ -151,6 +151,18 @@
 		);
 	}
 
+	/**
+	 * Fetch a short-lived JWT from the configured token endpoint.
+	 * GET {tokenUrl}?room={room} -> { "token": "..." }
+	 */
+	async function fetchJWT(tokenUrl, room) {
+		const res = await fetch(`${tokenUrl}?room=${encodeURIComponent(room)}`);
+		if (!res.ok) throw new Error(`JWT fetch failed: ${res.status} ${res.statusText}`);
+		const data = await res.json();
+		if (!data.token) throw new Error("JWT response missing token field");
+		return data.token;
+	}
+
 	function performVideo(_converse, ev) {
 		ev.stopPropagation();
 		ev.preventDefault();
@@ -179,13 +191,21 @@
 
 	function doVideo(_converse, view) {
 		const { api } = _converse;
-		const room = Strophe.getNodeFromJid(view.model.attributes.jid).toLowerCase().replace(/[\\]/g, "") + "-" + Math.random().toString(36).substr(2, 9);
+
+		// Use passphrase room name if wordlist is available, fall back to legacy format
+		const room = (typeof OlmeetWordlist !== "undefined")
+			? OlmeetWordlist.generate()
+			: Strophe.getNodeFromJid(view.model.attributes.jid).toLowerCase().replace(/[\\]/g, "") + "-" + Math.random().toString(36).substr(2, 9);
+
 		const url = baseMeetUrl + "/" + room;
 		const model = view.model;
 		console.debug("doVideo", room, url, view, model);
 			
 		const type = (model.get('type') == 'chatroom') ? 'groupchat' : 'chat';	
 		const target = (model.get('type') == 'chatbox') ? model.get('jid') : (model.get('type') == 'chatroom' ? model.get('jid') : model.get('from'));			
+
+		// Send invite with the plain URL (no JWT) — the recipient's plugin
+		// will mint its own token when they click "Open Meeting"
 		const msg = converse.env.stx`<message xmlns="jabber:client" to="${target}" type="${type}"><body>${url}</body><invite video="true" xmlns="urn:xmpp:call-invites:0"><external uri="${url}" /></invite></message>`;
 		_converse.api.send(msg);					
 		
@@ -209,11 +229,24 @@
 		}).click();
 	};
 
-	function doLocalVideo(_converse, view, room, url, label) {
+	async function doLocalVideo(_converse, view, room, url, label) {
 		const { api } = _converse;
-		const chatModel = view.model;
 		console.debug("doLocalVideo", view, room, url, label);
 
+		// JaaS JWT injection — fetch token and append to URL before launching
+		if (api.settings.get("olmeet_jaas_enabled")) {
+			try {
+				const token = await fetchJWT(api.settings.get("olmeet_token_url"), room);
+				url = url + "?jwt=" + encodeURIComponent(token);
+				console.debug("doLocalVideo: JWT acquired for room", room);
+			} catch (e) {
+				console.error("doLocalVideo: JWT fetch failed", e);
+				__displayError("Failed to get meeting token: " + e.message);
+				return;
+			}
+		}
+
+		const chatModel = view.model;
 		const modal = api.settings.get("olmeet_modal") === true;
 
 		if (modal) {
@@ -411,7 +444,7 @@
 				olFrame.contentWindow.addEventListener(
 					"message",
 					function (event) {
-						if (baseMeetUrl.indexOf(event.origin) === 0 &&	typeof event.data === "string") {
+						if (baseMeetUrl.indexOf(event.origin) === 0 && typeof event.data === "string") {
 							let data = JSON.parse(event.data);
 							let olEvent = data["olmeet_event"];
 							
@@ -480,11 +513,13 @@
 			olmeet_head_display_toggle: true,
 			olmeet_modal: false,
 			olmeet_url: MEET_START_OPTIONS.BASE_URL,
+			olmeet_jaas_enabled: false,
+			olmeet_token_url: "/token",
 		});
 
 		api.listen.on('connected', (data) => handleConnected(_converse));
 		api.listen.on("messageNotification", (data) => handleMessageNotification(_converse, data));
-		api.listen.on( "getToolbarButtons", (toolbar_el, buttons) => getToolbarButtons(_converse, toolbar_el, buttons));
+		api.listen.on("getToolbarButtons", (toolbar_el, buttons) => getToolbarButtons(_converse, toolbar_el, buttons));
 		api.listen.on("afterMessageBodyTransformed", (text) => afterMessageBodyTransformed(_converse, text));
 		api.listen.on('parseMessage', (stanza, attrs) => parseStanza(_converse, stanza, attrs));	
 		api.listen.on('parseMUCMessage', (stanza, attrs) => parseStanza(_converse, stanza, attrs));		
@@ -518,4 +553,4 @@
 		api.elements.define('converse-olmeet-dialog', MeetDialog);
 		console.debug("olmeet plugin is ready");
 	}
-}));	
+}));
