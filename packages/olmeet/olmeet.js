@@ -426,7 +426,7 @@
 		} 
 	};
 	
-	async function handleConnected() {	
+	async function handleConnected(_converse) {	
 		const features = await _converse.api.disco.getFeatures(await _converse.api.connection.get().domain);
 		console.debug("connected features", features);
 		
