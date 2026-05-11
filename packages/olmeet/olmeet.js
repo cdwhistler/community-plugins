@@ -11,6 +11,7 @@
 	const MEET_START_OPTIONS = {
 		INTO_CHAT_WINDOW: "into_chat_window",
 		INTO_NEW_TAB: "into_new_tab",
+		INTO_NONE: "none",
 		BASE_URL: "https://meet.jit.si"
 	};
 
@@ -504,7 +505,7 @@
 		const { html, render } = converse.env;
 			
 		api.settings.extend({
-			olmeet_start_option: MEET_START_OPTIONS.INTO_CHAT_WINDOW,
+			olmeet_start_option: MEET_START_OPTIONS.INTO_NONE,
 			olmeet_head_display_toggle: true,
 			olmeet_modal: false,
 			olmeet_url: MEET_START_OPTIONS.BASE_URL,
