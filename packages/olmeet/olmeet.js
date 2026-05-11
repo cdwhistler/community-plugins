@@ -525,6 +525,49 @@
 			initialize() {
 				super.initialize();
 				this.listenTo(this.model, "change", () => this.requestUpdate());
+
+				this.addEventListener('shown.bs.modal', () => {
+					const dialog = this.querySelector('.modal-dialog');
+					const header = this.querySelector('.modal-header');
+					if (!dialog || !header) return;
+
+					// Swap Bootstrap's transform-centering for explicit fixed position
+					dialog.style.transform = 'none';
+					dialog.style.margin = '0';
+					dialog.style.position = 'fixed';
+					dialog.style.top  = Math.max(0, (window.innerHeight - dialog.offsetHeight) / 2) + 'px';
+					dialog.style.left = Math.max(0, (window.innerWidth  - dialog.offsetWidth)  / 2) + 'px';
+
+					let startX, startY, startLeft, startTop;
+
+					const onMove = (e) => {
+						const cx = e.touches ? e.touches[0].clientX : e.clientX;
+						const cy = e.touches ? e.touches[0].clientY : e.clientY;
+						dialog.style.left = Math.max(0, startLeft + cx - startX) + 'px';
+						dialog.style.top  = Math.max(0, startTop  + cy - startY) + 'px';
+					};
+
+					const onUp = () => {
+						document.removeEventListener('mousemove', onMove);
+						document.removeEventListener('touchmove', onMove);
+						document.removeEventListener('mouseup',   onUp);
+						document.removeEventListener('touchend',  onUp);
+					};
+
+					header.addEventListener('mousedown', (e) => {
+						startX = e.clientX; startY = e.clientY;
+						startLeft = dialog.offsetLeft; startTop = dialog.offsetTop;
+						document.addEventListener('mousemove', onMove);
+						document.addEventListener('mouseup',   onUp);
+					});
+
+					header.addEventListener('touchstart', (e) => {
+						startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+						startLeft = dialog.offsetLeft; startTop = dialog.offsetTop;
+						document.addEventListener('touchmove', onMove);
+						document.addEventListener('touchend',  onUp);
+					}, { passive: true });
+				});
 			}
 
 			getModalTitle() {

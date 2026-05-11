@@ -6,6 +6,15 @@ converse-olmeet-confirm .modal-dialog {
     transform: translate(-50%, -50%);
 }
 
+/* Slim & draggable confirm dialog */
+converse-olmeet-confirm .modal-header {
+    cursor: move;
+    user-select: none;
+}
+converse-olmeet-confirm .modal-header {
+    --converse-modal-header-padding: 0.35rem 1rem;
+}
+
 converse-olmeet-confirm .modal-content {
     left: 20%;
     max-width: 320px;
@@ -34,4 +43,3 @@ converse-chat-message-body {
     display: block;
     width: 100%;
 }
-
